@@ -64,6 +64,7 @@ jobs:
       # ファイルの整理
       - name: Organize downloaded files
         run: |
+          # "screenshots"ディレクトリを作成し、カレントディレクトリ(.)直下にあるPNGファイルを移行する
           mkdir -p screenshots
           find . -maxdepth 1 -name "*.png" -exec mv {} screenshots/ \; || echo "No PNG files to move."
 
@@ -76,6 +77,7 @@ jobs:
       # スクリーンショット差分を保存
       - name: Save screenshot diff
         run: |
+          # "screenshot-diff"ディレクトリを作成し、差分スクリーンショットをコピーする
           mkdir -p screenshot-diff
           find **/build/outputs/roborazzi/ -type f -exec cp {} screenshot-diff/ \; || echo "No screenshot diff files found to save."
 
@@ -84,14 +86,17 @@ jobs:
         name: Check if there are valid files
         shell: bash
         run: |
+          # 差分画像 (*_compare.png)を検索し、配列に格納
           mapfile -t files_to_add < <(find ./screenshot-diff -type f -name "*_compare.png")
           exist_valid_files="false"
+          # 1つでも有効なファイルがある場合は、ループを抜ける
           for file in "${files_to_add[@]}"; do
             if [[ $file =~ ^[a-zA-Z0-9_./-]+$ ]]; then
               exist_valid_files="true"
               break
             fi
           done
+          # 結果をGITHUB_OUTPUTに書き込む
           echo "exist_valid_files=$exist_valid_files" >> "$GITHUB_OUTPUT"
 
       # 差分をコミットしてコンパニオンブランチにプッシュ
@@ -99,12 +104,15 @@ jobs:
         shell: bash
         if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
         env:
+          # ブランチ名を設定: feature/new-ui の場合 → companion_feature/new-ui
           BRANCH_NAME: companion_${{ github.head_ref || github.run_id }}
         run: |
+          # "screenshot-diff"ディレクトリ内の差分ファイルを取得し、git addする
           files_to_add=$(find ./screenshot-diff -type f -name "*_compare.png")
           for file in $files_to_add; do
             git add "$file"
           done
+          # 差分をコミット・プッシュ
           git config --global user.name ScreenshotBot
           git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
           git commit -m "Add screenshot diff"
@@ -118,8 +126,12 @@ jobs:
         env:
           BRANCH_NAME: companion_${{ github.head_ref || github.run_id }}
         run: |
+          # コンパニオンブランチから"screenshot-diff"ディレクトリ内の差分ファイルを取得
           files=$(find ./screenshot-diff -type f -name "*_compare.png")
+          # 複数行の出力に対応するための区切り文字を生成
+          # ランダムな16進数の8文字 (例: d1e2f3a4)を使用し、一意の識別子として扱う
           delimiter="$(openssl rand -hex 8)"
+          # 一時ファイルを作成し、Markdownのヘッダーを記述
           temp_output_file=$(mktemp)
           {
             echo "reports<<${delimiter}"
@@ -127,11 +139,14 @@ jobs:
             echo "| ファイル名 | イメージ |"
             echo "|-------|-------|"
           } > "$temp_output_file"
+          # 差分ファイルごとにMarkdownの表に追加
           for file in $files; do
             fileName=$(basename "$file" | sed -r 's/(.{20})/\1<br>/g')
             echo "| [$fileName](https://github.com/${{ github.repository }}/blob/$BRANCH_NAME/screenshot-diff/${file#./screenshot-diff/}) | ![](https://github.com/${{ github.repository }}/blob/$BRANCH_NAME/screenshot-diff/${file#./screenshot-diff/}?raw=true) |" >> "$temp_output_file"
           done
+          # 区切り文字を追加
           echo "${delimiter}" >> "$temp_output_file"
+          # ファイルをGITHUB_OUTPUTに書き込む
           cat "$temp_output_file" >> "$GITHUB_OUTPUT"
 
       # 既存のコメントを検索
@@ -155,10 +170,18 @@ jobs:
       # 古いコンパニオンブランチのクリーンアップ
       - name: Cleanup outdated companion branches
         run: |
+          # "companion_"プレフィックスを持つリモートブランチ一覧を取得
           git branch -r --format="%(refname:lstrip=3)" | grep companion_ | while read -r branch; do
+            # 各ブランチの最終コミット日時をUNIX タイムスタンプ(秒単位)で取得
             last_commit_date_timestamp=$(git log -1 --format=%ct "origin/$branch")
+            # 現在の時刻を UNIX タイムスタンプ (秒単位) で取得
             now_timestamp=$(date +%s)
-            if [ $((now_timestamp - last_commit_date_timestamp)) -gt 2592000 ]; then
+            # 最終コミットからの経過時間を計算
+            age=$((now_timestamp - last_commit_date_timestamp))
+            # 最終コミットから30日 (2592000秒) 経過している場合、削除対象とする
+            if [ "$age" -gt 2592000 ]; then
+              echo "Deleting outdated branch: $branch"
+              # リモートリポジトリから対象ブランチを削除
               git push origin --delete "$branch"
             fi
           done
