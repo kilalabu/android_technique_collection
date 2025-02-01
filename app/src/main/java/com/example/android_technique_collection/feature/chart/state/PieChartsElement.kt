@@ -23,11 +23,11 @@ data class PieChartsElement(
                 ),
                 PieChartsElement(
                     pieDegrees = calculatePieDegrees(15f),
-                    color = Color.Red
+                    color = Color.Yellow
                 ),
                 PieChartsElement(
                     pieDegrees = calculatePieDegrees(10f),
-                    color = Color.Yellow
+                    color = Color.Red
                 ),
             )
         }
