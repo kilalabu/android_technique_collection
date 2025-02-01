@@ -15,51 +15,71 @@ jobs:
       pull-requests: write # comment on PRs
 
     steps:
-      # 1. リポジトリをチェックアウト
+      # リポジトリをチェックアウト
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. JDK 17 をセットアップ
+      # JDK 17 をセットアップ
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
 
-      # 3. Gradle をセットアップ
+      # Gradle をセットアップ
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: wrapper
 
-      # 4. 過去のスクリーンショットアーティファクトをダウンロード（エラー無視）
+      # ダウンロード先のブランチを決定
+      - name: Determine correct branch to download screenshots from
+        id: determine-branch
+        run: |
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          HEAD_BRANCH="${{ github.head_ref }}"
+          # デフォルトのダウンロード先を PR のマージ先ブランチに設定
+          DOWNLOAD_BRANCH="$BASE_BRANCH"
+          # BASE_BRANCH に "develop" または "/develop" が含まれていない場合
+          if [[ ! "$BASE_BRANCH" =~ "develop" ]]; then
+            # HEAD_BRANCH が "sample/*" のような形式であることを想定し、接頭辞を取得
+            PREFIX=$(echo "$HEAD_BRANCH" | cut -d'/' -f1)
+            # プレフィックスの名前に合わせて "/develop" を追加
+            DOWNLOAD_BRANCH="${PREFIX}/develop"
+          fi
+          # 環境変数に設定
+          echo "DOWNLOAD_BRANCH=${DOWNLOAD_BRANCH}" >> "$GITHUB_ENV"
+          # ログ出力
+          echo "Determined DOWNLOAD_BRANCH: $DOWNLOAD_BRANCH"
+
+      # 過去のスクリーンショットアーティファクトをダウンロード（エラー無視）
       - name: Download previous screenshots
         uses: dawidd6/action-download-artifact@v3
         continue-on-error: true
         with:
           name: screenshots
           workflow: store_screenshots.yml
-          branch: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.event.repository.default_branch }}
+          branch: ${{ env.DOWNLOAD_BRANCH }}
 
-      # 5. ファイルの整理
+      # ファイルの整理
       - name: Organize downloaded files
         run: |
           mkdir -p screenshots
           find . -maxdepth 1 -name "*.png" -exec mv {} screenshots/ \; || echo "No PNG files to move."
 
-      # 6. スクリーンショット比較テストを実行
+      # スクリーンショット比較テストを実行
       - name: Compare screenshot test
         id: compare-screenshot-test
         run: |
           ./gradlew compareRoborazziDebug --stacktrace
 
-      # 7. スクリーンショット差分を保存
+      # スクリーンショット差分を保存
       - name: Save screenshot diff
         run: |
           mkdir -p screenshot-diff
           find **/build/outputs/roborazzi/ -type f -exec cp {} screenshot-diff/ \; || echo "No screenshot diff files found to save."
 
-      # 8. 有効なファイルが存在するか確認
+      # 有効なファイルが存在するか確認
       - id: check-if-there-are-valid-files
         name: Check if there are valid files
         shell: bash
@@ -74,7 +94,7 @@ jobs:
           done
           echo "exist_valid_files=$exist_valid_files" >> "$GITHUB_OUTPUT"
 
-      # 9. 差分をコミットしてコンパニオンブランチにプッシュ
+      # 差分をコミットしてコンパニオンブランチにプッシュ
       - id: push-screenshot-diff
         shell: bash
         if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
@@ -90,7 +110,7 @@ jobs:
           git commit -m "Add screenshot diff"
           git push origin HEAD:"refs/heads/$BRANCH_NAME" -f
 
-      # 10. 差分レポートを生成
+      # 差分レポートを生成
       - id: generate-diff-reports
         name: Generate diff reports
         if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
@@ -114,7 +134,7 @@ jobs:
           echo "${delimiter}" >> "$temp_output_file"
           cat "$temp_output_file" >> "$GITHUB_OUTPUT"
 
-      # 11. 既存のコメントを検索
+      # 既存のコメントを検索
       - id: find-comment
         name: Find existing comment
         uses: peter-evans/find-comment@v3
@@ -122,7 +142,7 @@ jobs:
           issue-number: ${{ github.event.number }}
           body-includes: "<!-- screenshot-diff-comment -->" # 一意の識別子で既存コメントを検索
 
-      # 12. プルリクエストにコメントを追加または更新
+      # プルリクエストにコメントを追加または更新
       - name: Add or update comment on PR
         uses: peter-evans/create-or-update-comment@v4
         if: steps.generate-diff-reports.outputs.reports != ''
@@ -132,7 +152,7 @@ jobs:
           body: ${{ steps.generate-diff-reports.outputs.reports }}
           edit-mode: replace
 
-      # 13. 古いコンパニオンブランチのクリーンアップ
+      # 古いコンパニオンブランチのクリーンアップ
       - name: Cleanup outdated companion branches
         run: |
           git branch -r --format="%(refname:lstrip=3)" | grep companion_ | while read -r branch; do
