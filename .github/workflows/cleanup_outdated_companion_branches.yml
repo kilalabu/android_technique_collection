@@ -26,7 +26,11 @@ jobs:
       - name: Cleanup outdated companion branches
         run: |
           # "companion_" プレフィックスを持つリモートブランチ一覧を取得
+          deleted_branches=()
+          found_branches=false
+
           git branch -r --format="%(refname:lstrip=3)" | grep companion_ | while read -r branch; do
+            found_branches=true
 
             # 各ブランチの最終コミット日時を UNIX タイムスタンプ(秒単位)で取得
             last_commit_date_timestamp=$(git log -1 --format=%ct "origin/$branch")
@@ -39,7 +43,23 @@ jobs:
 
             # 最終コミットから30日 (2592000秒) 経過している場合、削除対象とする
             if [ "$age" -gt 2592000 ]; then
-              echo "Deleting outdated branch: $branch"
+              echo "Deleting outdated branch: $branch (Last commit: $(date -d @$last_commit_date_timestamp '+%Y-%m-%d %H:%M:%S UTC'))"
               git push origin --delete "$branch"
+              deleted_branches+=("$branch")
             fi
           done
+
+          # 削除されたブランチのログを出力
+          if [ ${#deleted_branches[@]} -gt 0 ]; then
+            echo "Deleted branches:"
+            for branch in "${deleted_branches[@]}"; do
+              echo "- $branch"
+            done
+          else
+            echo "No outdated companion branches were found for deletion."
+          fi
+
+          # companion_ 付きのブランチがそもそもなかった場合のログ出力
+          if [ "$found_branches" = false ]; then
+            echo "No companion branches found in the repository."
+          fi
