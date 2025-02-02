@@ -1,7 +1,6 @@
 name: cleanup outdated companion branches
 
 on:
-  pull_request:
   schedule:
     - cron: '0 16 * * 0' # 毎週月曜日の 1:00 JST（UTC 16:00）に実行
   workflow_dispatch:
