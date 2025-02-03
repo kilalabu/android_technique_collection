@@ -51,7 +51,7 @@ jobs:
 
       # 過去のスクリーンショットアーティファクトをダウンロード（エラー無視）
       - name: Download previous screenshots
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v8
         continue-on-error: true
         with:
           name: screenshots
