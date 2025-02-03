@@ -8,25 +8,22 @@ permissions: {}
 jobs:
   compare-and-comment:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     permissions:
-      contents: write # clone, push branches
+      contents: write # push branches
       pull-requests: write # comment on PRs
 
     steps:
-      # リポジトリをチェックアウト
       - name: Checkout
         uses: actions/checkout@v4
 
-      # JDK 17 をセットアップ
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
 
-      # Gradle をセットアップ
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -54,7 +51,7 @@ jobs:
 
       # 過去のスクリーンショットアーティファクトをダウンロード（エラー無視）
       - name: Download previous screenshots
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v8
         continue-on-error: true
         with:
           name: screenshots
@@ -166,22 +163,3 @@ jobs:
           issue-number: ${{ github.event.number }}
           body: ${{ steps.generate-diff-reports.outputs.reports }}
           edit-mode: replace
-
-      # 古いコンパニオンブランチのクリーンアップ
-      - name: Cleanup outdated companion branches
-        run: |
-          # "companion_"プレフィックスを持つリモートブランチ一覧を取得
-          git branch -r --format="%(refname:lstrip=3)" | grep companion_ | while read -r branch; do
-            # 各ブランチの最終コミット日時をUNIX タイムスタンプ(秒単位)で取得
-            last_commit_date_timestamp=$(git log -1 --format=%ct "origin/$branch")
-            # 現在の時刻を UNIX タイムスタンプ (秒単位) で取得
-            now_timestamp=$(date +%s)
-            # 最終コミットからの経過時間を計算
-            age=$((now_timestamp - last_commit_date_timestamp))
-            # 最終コミットから30日 (2592000秒) 経過している場合、削除対象とする
-            if [ "$age" -gt 2592000 ]; then
-              echo "Deleting outdated branch: $branch"
-              # リモートリポジトリから対象ブランチを削除
-              git push origin --delete "$branch"
-            fi
-          done
