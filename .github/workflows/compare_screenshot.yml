@@ -68,27 +68,26 @@ jobs:
         run: |
           ./gradlew compareRoborazziDebug --stacktrace
 
-      # スクリーンショット差分を保存
+      # スクリーンショット差分がある場合は保存
       - name: Save screenshot diff
-        run: |
-          # "screenshot-diff"ディレクトリを作成し、差分スクリーンショットをコピーする
-          mkdir -p screenshot-diff
-          find **/build/outputs/roborazzi/ -type f -exec cp {} screenshot-diff/ \; || echo "No screenshot diff files found to save."
-
-      # 有効なファイルが存在するか確認
-      - name: Check if there are valid files
-        id: check-if-there-are-valid-files
+        id: save-screenshot-diff
         shell: bash
         run: |
-          files_to_add=$(find ./screenshot-diff -type f -name "*_compare.png")
+          # "screenshot-diff"ディレクトリを作成し、差分ファイルをコピー
+          mkdir -p screenshot-diff
+          find **/build/outputs/roborazzi/ -type f -name "*_compare.png" -exec cp {} screenshot-diff/ \;
 
-          if [[ -z "$files_to_add" ]]; then
+          # 差分ファイルが存在するか確認
+          if [[ -z "$(ls -A screenshot-diff)" ]]; then
             echo "No screenshot diff files found."
+            echo "SCREENSHOT_DIFF_FOUND=false" >> "$GITHUB_ENV"
+            exit 0
           fi
+          echo "SCREENSHOT_DIFF_FOUND=true" >> "$GITHUB_ENV"
 
       # 差分をコミットしてコンパニオンブランチにプッシュ
       - name: Push screenshot diff
-        if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
+        if: env.SCREENSHOT_DIFF_FOUND == 'true'
         id: push-screenshot-diff
         shell: bash
         env:
@@ -108,7 +107,7 @@ jobs:
 
       # 差分レポートを生成
       - name: Generate diff reports
-        if : push-screenshot-diff.outputs.success == 'true'
+        if: env.SCREENSHOT_DIFF_FOUND == 'true'
         id: generate-diff-reports
         shell: bash
         env:
@@ -139,7 +138,7 @@ jobs:
 
       # 既存のコメントを検索
       - name: Find existing comment
-        if: steps.generate-diff-reports.outputs.reports != ''
+        if: env.SCREENSHOT_DIFF_FOUND == 'true'
         id: find-comment
         uses: peter-evans/find-comment@v3
         with:
@@ -148,8 +147,8 @@ jobs:
 
       # プルリクエストにコメントを追加または更新
       - name: Add or update comment on PR
+        if: env.SCREENSHOT_DIFF_FOUND == 'true'
         uses: peter-evans/create-or-update-comment@v4
-        if: steps.generate-diff-reports.outputs.reports != ''
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ github.event.number }}
