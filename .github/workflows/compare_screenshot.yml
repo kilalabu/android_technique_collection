@@ -82,6 +82,7 @@ jobs:
             echo "SCREENSHOT_DIFF_FOUND=false" >> "$GITHUB_ENV"
             exit 0
           fi
+          echo "Screenshot diff files found."
           echo "SCREENSHOT_DIFF_FOUND=true" >> "$GITHUB_ENV"
 
       # 差分をコミットしてコンパニオンブランチにプッシュ
