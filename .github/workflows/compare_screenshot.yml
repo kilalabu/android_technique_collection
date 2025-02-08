@@ -102,7 +102,7 @@ jobs:
         if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
         env:
           # ブランチ名を設定: feature/new-ui の場合 → companion_feature/new-ui
-          BRANCH_NAME: companion_${{ github.head_ref || github.run_id }}
+          BRANCH_NAME: companion_${{ github.head_ref }}
         run: |
           # "screenshot-diff"ディレクトリ内の差分ファイルを取得し、git addする
           files_to_add=$(find ./screenshot-diff -type f -name "*_compare.png")
