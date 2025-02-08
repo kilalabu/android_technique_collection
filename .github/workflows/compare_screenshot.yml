@@ -3,8 +3,6 @@ name: compare screenshot with comment
 on:
   pull_request:
 
-permissions: {}
-
 jobs:
   compare-and-comment:
     runs-on: ubuntu-latest
@@ -49,10 +47,9 @@ jobs:
           # ログ出力
           echo "Determined DOWNLOAD_BRANCH: $DOWNLOAD_BRANCH"
 
-      # 過去のスクリーンショットアーティファクトをダウンロード（エラー無視）
+      # 過去のスクリーンショットアーティファクトをダウンロード
       - name: Download previous screenshots
         uses: dawidd6/action-download-artifact@v8
-        continue-on-error: true
         with:
           name: screenshots
           workflow: store_screenshots.yml
@@ -78,29 +75,21 @@ jobs:
           mkdir -p screenshot-diff
           find **/build/outputs/roborazzi/ -type f -exec cp {} screenshot-diff/ \; || echo "No screenshot diff files found to save."
 
-      # 有効なファイルが存在するか確認
+      # 有効なファイルが存在するか確認し、なければワークフローをスキップ
       - name: Check if there are valid files
-        id: check-if-there-are-valid-files
         shell: bash
         run: |
-          # 差分画像 (*_compare.png)を検索し、配列に格納
-          mapfile -t files_to_add < <(find ./screenshot-diff -type f -name "*_compare.png")
-          exist_valid_files="false"
-          # 1つでも有効なファイルがある場合は、ループを抜ける
-          for file in "${files_to_add[@]}"; do
-            if [[ $file =~ ^[a-zA-Z0-9_./-]+$ ]]; then
-              exist_valid_files="true"
-              break
-            fi
-          done
-          # 結果をGITHUB_OUTPUTに書き込む
-          echo "exist_valid_files=$exist_valid_files" >> "$GITHUB_OUTPUT"
+          files_to_add=$(find ./screenshot-diff -type f -name "*_compare.png")
+
+          if [[ -z "$files_to_add" ]]; then
+            echo "No screenshot diff files found."
+            exit 0
+          fi
 
       # 差分をコミットしてコンパニオンブランチにプッシュ
       - name: Push screenshot diff
         id: push-screenshot-diff
         shell: bash
-        if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
         env:
           # ブランチ名を設定: feature/new-ui の場合 → companion_feature/new-ui
           BRANCH_NAME: companion_${{ github.head_ref }}
@@ -119,7 +108,6 @@ jobs:
       # 差分レポートを生成
       - name: Generate diff reports
         id: generate-diff-reports
-        if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
         shell: bash
         env:
           BRANCH_NAME: companion_${{ github.head_ref || github.run_id }}
