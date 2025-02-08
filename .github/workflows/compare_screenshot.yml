@@ -75,19 +75,20 @@ jobs:
           mkdir -p screenshot-diff
           find **/build/outputs/roborazzi/ -type f -exec cp {} screenshot-diff/ \; || echo "No screenshot diff files found to save."
 
-      # 有効なファイルが存在するか確認し、なければワークフローをスキップ
+      # 有効なファイルが存在するか確認
       - name: Check if there are valid files
+        id: check-if-there-are-valid-files
         shell: bash
         run: |
           files_to_add=$(find ./screenshot-diff -type f -name "*_compare.png")
 
           if [[ -z "$files_to_add" ]]; then
             echo "No screenshot diff files found."
-            exit 0
           fi
 
       # 差分をコミットしてコンパニオンブランチにプッシュ
       - name: Push screenshot diff
+        if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
         id: push-screenshot-diff
         shell: bash
         env:
@@ -107,6 +108,7 @@ jobs:
 
       # 差分レポートを生成
       - name: Generate diff reports
+        if : push-screenshot-diff.outputs.success == 'true'
         id: generate-diff-reports
         shell: bash
         env:
@@ -137,6 +139,7 @@ jobs:
 
       # 既存のコメントを検索
       - name: Find existing comment
+        if: steps.generate-diff-reports.outputs.reports != ''
         id: find-comment
         uses: peter-evans/find-comment@v3
         with:
