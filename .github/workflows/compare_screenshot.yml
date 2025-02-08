@@ -79,8 +79,8 @@ jobs:
           find **/build/outputs/roborazzi/ -type f -exec cp {} screenshot-diff/ \; || echo "No screenshot diff files found to save."
 
       # 有効なファイルが存在するか確認
-      - id: check-if-there-are-valid-files
-        name: Check if there are valid files
+      - name: Check if there are valid files
+        id: check-if-there-are-valid-files
         shell: bash
         run: |
           # 差分画像 (*_compare.png)を検索し、配列に格納
@@ -97,7 +97,8 @@ jobs:
           echo "exist_valid_files=$exist_valid_files" >> "$GITHUB_OUTPUT"
 
       # 差分をコミットしてコンパニオンブランチにプッシュ
-      - id: push-screenshot-diff
+      - name: Push screenshot diff
+        id: push-screenshot-diff
         shell: bash
         if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
         env:
@@ -116,8 +117,8 @@ jobs:
           git push origin HEAD:"refs/heads/$BRANCH_NAME" -f
 
       # 差分レポートを生成
-      - id: generate-diff-reports
-        name: Generate diff reports
+      - name: Generate diff reports
+        id: generate-diff-reports
         if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
         shell: bash
         env:
@@ -147,8 +148,8 @@ jobs:
           cat "$temp_output_file" >> "$GITHUB_OUTPUT"
 
       # 既存のコメントを検索
-      - id: find-comment
-        name: Find existing comment
+      - name: Find existing comment
+        id: find-comment
         uses: peter-evans/find-comment@v3
         with:
           issue-number: ${{ github.event.number }}
