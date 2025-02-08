@@ -55,8 +55,8 @@ jobs:
           workflow: store_screenshots.yml
           branch: ${{ env.DOWNLOAD_BRANCH }}
 
-      # ファイルの整理
-      - name: Organize downloaded files
+      # ファイルを移動
+      - name: Move downloaded files
         run: |
           # "screenshots"ディレクトリを作成し、カレントディレクトリ(.)直下にあるPNGファイルを移行する
           mkdir -p screenshots
@@ -68,9 +68,8 @@ jobs:
         run: |
           ./gradlew compareRoborazziDebug --stacktrace
 
-      # スクリーンショット差分がある場合は保存
-      - name: Save screenshot diff
-        id: save-screenshot-diff
+      # スクリーンショット差分を検索
+      - name: Find screenshot diff
         shell: bash
         run: |
           # "screenshot-diff"ディレクトリを作成し、差分ファイルをコピー
@@ -88,7 +87,6 @@ jobs:
       # 差分をコミットしてコンパニオンブランチにプッシュ
       - name: Push screenshot diff
         if: env.SCREENSHOT_DIFF_FOUND == 'true'
-        id: push-screenshot-diff
         shell: bash
         env:
           # ブランチ名を設定: feature/new-ui の場合 → companion_feature/new-ui
