@@ -1,21 +1,24 @@
 name: store screenshots
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
-      - master
       - develop
       - '*/develop'
-
-permissions: {}
+  create:
+    branches:
+      - '*/develop'
 
 jobs:
   store-screenshot-test:
+    if: github.event_name == 'create' || github.event.pull_request.merged == true  # create時 or マージ時のみ実行
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     permissions:
-      contents: read # for clone
+      contents: read
       actions: write # for upload-artifact
 
     steps:
@@ -28,20 +31,65 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      # Better than caching and/or extensions of actions/setup-java
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: wrapper
 
+      # 環境変数の初期値を設定（想定外の場合に備えて）
+      - name: Set initial environment variables
+        run: |
+          echo "COMPANION_BRANCH_EXISTS=false" >> $GITHUB_ENV
+          echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
+
+      # マージ時のみ実行
+      - name: Check if companion branch exists
+        if: github.event.pull_request.merged == true
+        id: check_branch
+        run: |
+          COMPANION_BRANCH="companion_${{ github.event.pull_request.head.ref }}"
+          echo "Checking for branch: $COMPANION_BRANCH"
+          if git ls-remote --exit-code --heads origin "$COMPANION_BRANCH"; then
+            echo "Companion branch exists: $COMPANION_BRANCH"
+            echo "COMPANION_BRANCH_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Companion branch does not exist: $COMPANION_BRANCH"
+            echo "COMPANION_BRANCH_EXISTS=false" >> $GITHUB_ENV
+          fi
+
+      # マージ時 かつ コンパニオンブランチがない場合のみ実行
+      - name: Download artifact
+        if: github.event.pull_request.merged == true && env.COMPANION_BRANCH_EXISTS == 'false'
+        id: download_artifact
+        uses: dawidd6/action-download-artifact@v8
+        continue-on-error: true # エラーが発生しても続行
+        with:
+          name: screenshots
+          workflow: store_screenshots.yml
+          branch: ${{ github.base_ref }}
+
+      # マージ時 かつ コンパニオンブランチがない場合のみ実行
+      - name: Check if artifact exists
+        if: github.event.pull_request.merged == true && env.COMPANION_BRANCH_EXISTS == 'false'
+        run: |
+          if [ "${{ steps.download_artifact.outcome }}" == "success" ]; then
+            echo "Artifact exists"
+            echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Artifact does not exist"
+            echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
+          fi
+
       - name: record screenshot
+        # ブランチcreate時、またはcompanionブランチがある、またはアーティファクトがない場合のみ保存
+        if: github.event_name == 'create' || env.COMPANION_BRANCH_EXISTS == 'true' || env.ARTIFACT_EXISTS == 'false'
         id: record-test
         run: |
           # Use --rerun-tasks to disable cache for test task
           ./gradlew recordRoborazziDebug --stacktrace --rerun-tasks
 
       - uses: actions/upload-artifact@v4
-        if: ${{ always() }}
+        if: steps.record-test.outcome == 'success'
         with:
           name: screenshots
           path: screenshots

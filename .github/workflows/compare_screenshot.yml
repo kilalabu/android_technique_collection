@@ -3,30 +3,25 @@ name: compare screenshot with comment
 on:
   pull_request:
 
-permissions: {}
-
 jobs:
   compare-and-comment:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     permissions:
-      contents: write # clone, push branches
+      contents: write # push branches
       pull-requests: write # comment on PRs
 
     steps:
-      # リポジトリをチェックアウト
       - name: Checkout
         uses: actions/checkout@v4
 
-      # JDK 17 をセットアップ
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
 
-      # Gradle をセットアップ
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -52,18 +47,18 @@ jobs:
           # ログ出力
           echo "Determined DOWNLOAD_BRANCH: $DOWNLOAD_BRANCH"
 
-      # 過去のスクリーンショットアーティファクトをダウンロード（エラー無視）
+      # 過去のスクリーンショットアーティファクトをダウンロード
       - name: Download previous screenshots
-        uses: dawidd6/action-download-artifact@v3
-        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v8
         with:
           name: screenshots
           workflow: store_screenshots.yml
           branch: ${{ env.DOWNLOAD_BRANCH }}
 
-      # ファイルの整理
-      - name: Organize downloaded files
+      # ファイルを移動
+      - name: Move downloaded files
         run: |
+          # "screenshots"ディレクトリを作成し、カレントディレクトリ(.)直下にあるPNGファイルを移行する
           mkdir -p screenshots
           find . -maxdepth 1 -name "*.png" -exec mv {} screenshots/ \; || echo "No PNG files to move."
 
@@ -73,53 +68,55 @@ jobs:
         run: |
           ./gradlew compareRoborazziDebug --stacktrace
 
-      # スクリーンショット差分を保存
-      - name: Save screenshot diff
-        run: |
-          mkdir -p screenshot-diff
-          find **/build/outputs/roborazzi/ -type f -exec cp {} screenshot-diff/ \; || echo "No screenshot diff files found to save."
-
-      # 有効なファイルが存在するか確認
-      - id: check-if-there-are-valid-files
-        name: Check if there are valid files
+      # スクリーンショット差分を検索
+      - name: Find screenshot diff
         shell: bash
         run: |
-          mapfile -t files_to_add < <(find ./screenshot-diff -type f -name "*_compare.png")
-          exist_valid_files="false"
-          for file in "${files_to_add[@]}"; do
-            if [[ $file =~ ^[a-zA-Z0-9_./-]+$ ]]; then
-              exist_valid_files="true"
-              break
-            fi
-          done
-          echo "exist_valid_files=$exist_valid_files" >> "$GITHUB_OUTPUT"
+          # "screenshot-diff"ディレクトリを作成し、差分ファイルをコピー
+          mkdir -p screenshot-diff
+          find **/build/outputs/roborazzi/ -type f -name "*_compare.png" -exec cp {} screenshot-diff/ \;
+
+          # 差分ファイルが存在するか確認
+          if [[ -z "$(ls -A screenshot-diff)" ]]; then
+            echo "No screenshot diff files found."
+            echo "SCREENSHOT_DIFF_FOUND=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "SCREENSHOT_DIFF_FOUND=true" >> "$GITHUB_ENV"
 
       # 差分をコミットしてコンパニオンブランチにプッシュ
-      - id: push-screenshot-diff
+      - name: Push screenshot diff
+        if: env.SCREENSHOT_DIFF_FOUND == 'true'
         shell: bash
-        if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
         env:
-          BRANCH_NAME: companion_${{ github.head_ref || github.run_id }}
+          # ブランチ名を設定: feature/new-ui の場合 → companion_feature/new-ui
+          BRANCH_NAME: companion_${{ github.head_ref }}
         run: |
+          # "screenshot-diff"ディレクトリ内の差分ファイルを取得し、git addする
           files_to_add=$(find ./screenshot-diff -type f -name "*_compare.png")
           for file in $files_to_add; do
             git add "$file"
           done
+          # 差分をコミット・プッシュ
           git config --global user.name ScreenshotBot
           git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
           git commit -m "Add screenshot diff"
           git push origin HEAD:"refs/heads/$BRANCH_NAME" -f
 
       # 差分レポートを生成
-      - id: generate-diff-reports
-        name: Generate diff reports
-        if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
+      - name: Generate diff reports
+        if: env.SCREENSHOT_DIFF_FOUND == 'true'
+        id: generate-diff-reports
         shell: bash
         env:
           BRANCH_NAME: companion_${{ github.head_ref || github.run_id }}
         run: |
+          # コンパニオンブランチから"screenshot-diff"ディレクトリ内の差分ファイルを取得
           files=$(find ./screenshot-diff -type f -name "*_compare.png")
+          # 複数行の出力に対応するための区切り文字を生成
+          # ランダムな16進数の8文字 (例: d1e2f3a4)を使用し、一意の識別子として扱う
           delimiter="$(openssl rand -hex 8)"
+          # 一時ファイルを作成し、Markdownのヘッダーを記述
           temp_output_file=$(mktemp)
           {
             echo "reports<<${delimiter}"
@@ -127,16 +124,20 @@ jobs:
             echo "| ファイル名 | イメージ |"
             echo "|-------|-------|"
           } > "$temp_output_file"
+          # 差分ファイルごとにMarkdownの表に追加
           for file in $files; do
             fileName=$(basename "$file" | sed -r 's/(.{20})/\1<br>/g')
             echo "| [$fileName](https://github.com/${{ github.repository }}/blob/$BRANCH_NAME/screenshot-diff/${file#./screenshot-diff/}) | ![](https://github.com/${{ github.repository }}/blob/$BRANCH_NAME/screenshot-diff/${file#./screenshot-diff/}?raw=true) |" >> "$temp_output_file"
           done
+          # 区切り文字を追加
           echo "${delimiter}" >> "$temp_output_file"
+          # ファイルをGITHUB_OUTPUTに書き込む
           cat "$temp_output_file" >> "$GITHUB_OUTPUT"
 
       # 既存のコメントを検索
-      - id: find-comment
-        name: Find existing comment
+      - name: Find existing comment
+        if: env.SCREENSHOT_DIFF_FOUND == 'true'
+        id: find-comment
         uses: peter-evans/find-comment@v3
         with:
           issue-number: ${{ github.event.number }}
@@ -144,21 +145,10 @@ jobs:
 
       # プルリクエストにコメントを追加または更新
       - name: Add or update comment on PR
+        if: env.SCREENSHOT_DIFF_FOUND == 'true'
         uses: peter-evans/create-or-update-comment@v4
-        if: steps.generate-diff-reports.outputs.reports != ''
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ github.event.number }}
           body: ${{ steps.generate-diff-reports.outputs.reports }}
           edit-mode: replace
-
-      # 古いコンパニオンブランチのクリーンアップ
-      - name: Cleanup outdated companion branches
-        run: |
-          git branch -r --format="%(refname:lstrip=3)" | grep companion_ | while read -r branch; do
-            last_commit_date_timestamp=$(git log -1 --format=%ct "origin/$branch")
-            now_timestamp=$(date +%s)
-            if [ $((now_timestamp - last_commit_date_timestamp)) -gt 2592000 ]; then
-              git push origin --delete "$branch"
-            fi
-          done
