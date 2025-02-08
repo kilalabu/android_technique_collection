@@ -3,8 +3,6 @@ name: compare screenshot with comment
 on:
   pull_request:
 
-permissions: {}
-
 jobs:
   compare-and-comment:
     runs-on: ubuntu-latest
