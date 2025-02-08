@@ -36,7 +36,7 @@ jobs:
         with:
           gradle-version: wrapper
 
-      # 環境変数の初期値を設定
+      # 環境変数の初期値を設定（想定外の場合に備えて）
       - name: Set initial environment variables
         run: |
           echo "COMPANION_BRANCH_EXISTS=false" >> $GITHUB_ENV
@@ -68,9 +68,17 @@ jobs:
           workflow: store_screenshots.yml
           branch: ${{ github.base_ref }}
 
+      # マージ時 かつ コンパニオンブランチがない場合のみ実行
       - name: Check if artifact exists
-        if: steps.download_artifact.outcome == 'success'
-        run: echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
+        if: github.event.pull_request.merged == true && env.COMPANION_BRANCH_EXISTS == 'false'
+        run: |
+          if [ "${{ steps.download_artifact.outcome }}" == "success" ]; then
+            echo "Artifact exists"
+            echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Artifact does not exist"
+            echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
+          fi
 
       - name: record screenshot
         # ブランチcreate時、またはcompanionブランチがある、またはアーティファクトがない場合のみ保存
