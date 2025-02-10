@@ -7,13 +7,13 @@ on:
     branches:
       - develop
       - '*/develop'
-  create:
+  push:
     branches:
       - '*/develop'
 
 jobs:
   store-screenshot-test:
-    if: github.event_name == 'create' || github.event.pull_request.merged == true  # create時 or マージ時のみ実行
+    if: github.event_name == 'create' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) # create時 or マージ時のみ実行
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -36,9 +36,9 @@ jobs:
         with:
           gradle-version: wrapper
 
-      # Companion ブランチとアーティファクトの存在チェック
+      # マージ時のみ実行
       - name: Check companion branch and artifact
-        if: github.event.pull_request.merged == true
+        if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
         run: |
           COMPANION_BRANCH="companion_${{ github.event.pull_request.head.ref }}"
 
@@ -61,6 +61,11 @@ jobs:
             fi
           fi
 
+      # 以下の条件を満たす場合のみスクリーンショットを保存する
+      # - 案件ブランチ作成時
+      # - PRマージ時（以下のいずれかを満たす場合）
+      #   - 指定のcompanionブランチが存在する
+      #   - アーティファクトが存在しない
       - name: Record screenshot
         id: record-test
         if: github.event_name == 'create' || env.COMPANION_BRANCH_EXISTS == 'true' || env.ARTIFACT_EXISTS == 'false'
