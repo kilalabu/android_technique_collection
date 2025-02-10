@@ -54,8 +54,10 @@ jobs:
           if [ "$COMPANION_BRANCH_EXISTS" == "false" ]; then
             echo "Attempting to download artifact..."
             if gh run download --name screenshots --repo $GITHUB_REPOSITORY; then
+              echo "Artifact exists"
               echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
             else
+              echo "Artifact does not exist"
               echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
             fi
           fi
