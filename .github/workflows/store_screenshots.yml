@@ -36,12 +36,11 @@ jobs:
         with:
           gradle-version: wrapper
 
-      - name: Check companion branch and artifact
+      - name: Check if companion branch exists
+        id: check_companion_branch
         if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
         run: |
           COMPANION_BRANCH="companion_${{ github.event.pull_request.head.ref }}"
-
-          # Companion ブランチがあるかチェック
           if git ls-remote --exit-code --heads origin "$COMPANION_BRANCH"; then
             echo "Companion branch exists: $COMPANION_BRANCH"
             echo "COMPANION_BRANCH_EXISTS=true" >> $GITHUB_ENV
@@ -50,16 +49,25 @@ jobs:
             echo "COMPANION_BRANCH_EXISTS=false" >> $GITHUB_ENV
           fi
 
-          # Companion ブランチがない場合のみアーティファクト取得
-          if [ "$COMPANION_BRANCH_EXISTS" == "false" ]; then
-            echo "Attempting to download artifact..."
-            if gh run download --name screenshots --repo $GITHUB_REPOSITORY; then
-              echo "Artifact exists"
-              echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
-            else
-              echo "Artifact does not exist"
-              echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
-            fi
+      - name: Download artifact
+        id: download_artifact
+        if: steps.check_companion_branch.outcome == 'success' && env.COMPANION_BRANCH_EXISTS == 'false'
+        uses: dawidd6/action-download-artifact@v8
+        continue-on-error: true # エラーが発生しても続行
+        with:
+          name: screenshots
+          workflow: store_screenshots.yml
+          branch: ${{ github.base_ref }}
+
+      - name: Check if artifact exists
+        if: steps.check_companion_branch.outcome == 'success' && env.COMPANION_BRANCH_EXISTS == 'false'
+        run: |
+          if [ "${{ steps.download_artifact.outcome }}" == "success" ]; then
+            echo "Artifact exists"
+            echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Artifact does not exist"
+            echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
           fi
 
       # 以下の条件を満たす場合のみスクリーンショットを保存する
@@ -68,13 +76,13 @@ jobs:
       #   - 指定のcompanionブランチが存在する
       #   - アーティファクトが存在しない
       - name: Record screenshot
-        id: record-test
+        id: record_test
         if: github.event_name == 'create' || env.COMPANION_BRANCH_EXISTS == 'true' || env.ARTIFACT_EXISTS == 'false'
         run: ./gradlew recordRoborazziDebug --stacktrace --rerun-tasks
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
-        if: steps.record-test.outcome == 'success'
+        if: steps.record_test.outcome == 'success'
         with:
           name: screenshots
           path: screenshots
