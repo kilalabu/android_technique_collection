@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: steps.record_test.outcome == 'success'
         with:
-          name: screenshots_upload-name/develop
+          name: screenshots_upload-name
           path: screenshots
           retention-days: 30
           overwrite: true

@@ -51,9 +51,8 @@ jobs:
       - name: Download previous screenshots
         uses: dawidd6/action-download-artifact@v8
         with:
-          name: screenshots_upload-name/develop
+          name: screenshots_upload-name
           workflow: store_screenshots.yml
-          branch: ${{ env.DOWNLOAD_BRANCH }}
 
       # ファイルを移動
       - name: Move downloaded files
