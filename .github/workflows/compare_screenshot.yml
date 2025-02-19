@@ -27,8 +27,8 @@ jobs:
         with:
           gradle-version: wrapper
 
-      # ダウンロード先のブランチを決定
-      - name: Determine correct branch to download screenshots from
+      # ダウンロード先のアーティファクト名を決定
+      - name: Determine ARTIFACT_NAME
         id: determine-branch
         run: |
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
