@@ -46,7 +46,7 @@ private fun ChartScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "グラフ画面")
+                    Text(text = "グラフ")
                 },
             )
         },
