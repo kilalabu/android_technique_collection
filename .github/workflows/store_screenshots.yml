@@ -36,7 +36,7 @@ jobs:
 
       # アーティファクト名を決定
       - name: Determine ARTIFACT_NAME
-        id: determine-branch
+        id: determine-Artifact-Name
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             DOWNLOAD_BRANCH="${{ github.event.pull_request.base.ref }}"
