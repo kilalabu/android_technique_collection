@@ -34,14 +34,7 @@ jobs:
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           HEAD_BRANCH="${{ github.head_ref }}"
           # デフォルトのダウンロード先を PR のマージ先ブランチに設定
-          DOWNLOAD_BRANCH="$BASE_BRANCH"
-          # BASE_BRANCH に "develop" または "/develop" が含まれていない場合
-          if [[ ! "$BASE_BRANCH" =~ "develop" ]]; then
-            # HEAD_BRANCH が "sample/*" のような形式であることを想定し、接頭辞を取得
-            PREFIX=$(echo "$HEAD_BRANCH" | cut -d'/' -f1)
-            # プレフィックスの名前に合わせて "/develop" を追加
-            DOWNLOAD_BRANCH="${PREFIX}/develop"
-          fi
+          DOWNLOAD_BRANCH="workflow-only-merge/red-blue"
           # 環境変数に設定
           echo "DOWNLOAD_BRANCH=${DOWNLOAD_BRANCH}" >> "$GITHUB_ENV"
           # ログ出力
