@@ -7,13 +7,10 @@ on:
     branches:
       - develop
       - '*/develop'
-  push:
-    branches:
-      - '*/develop'
 
 jobs:
   store-screenshot-test:
-    if: github.event_name == 'create' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -77,7 +74,7 @@ jobs:
       #   - アーティファクトが存在しない
       - name: Record screenshot
         id: record_test
-        if: github.event_name == 'create' || env.COMPANION_BRANCH_EXISTS == 'true' || env.ARTIFACT_EXISTS == 'false'
+        if: env.COMPANION_BRANCH_EXISTS == 'true' || env.ARTIFACT_EXISTS == 'false'
         run: ./gradlew recordRoborazziDebug --stacktrace --rerun-tasks
 
       - name: Upload screenshots
