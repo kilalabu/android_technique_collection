@@ -51,7 +51,7 @@ jobs:
       - name: Download previous screenshots
         uses: dawidd6/action-download-artifact@v8
         with:
-          name: screenshots
+          name: screenshots_upload-name/develop
           workflow: store_screenshots.yml
           branch: ${{ env.DOWNLOAD_BRANCH }}
 
