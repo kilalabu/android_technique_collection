@@ -27,8 +27,8 @@ jobs:
         with:
           gradle-version: wrapper
 
-      # ダウンロード先のブランチを決定
-      - name: Determine correct branch to download screenshots from
+      # ダウンロード先のアーティファクト名を決定
+      - name: Determine ARTIFACT_NAME
         id: determine-branch
         run: |
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
@@ -42,18 +42,18 @@ jobs:
             # プレフィックスの名前に合わせて "/develop" を追加
             DOWNLOAD_BRANCH="${PREFIX}/develop"
           fi
+          ARTIFACT_NAME="screenshots_${DOWNLOAD_BRANCH%/develop}"
           # 環境変数に設定
-          echo "DOWNLOAD_BRANCH=${DOWNLOAD_BRANCH}" >> "$GITHUB_ENV"
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> "$GITHUB_ENV"
           # ログ出力
-          echo "Determined DOWNLOAD_BRANCH: $DOWNLOAD_BRANCH"
+          echo "Determined DOWNLOAD_BRANCH: $DOWNLOAD_BRANCH, ARTIFACT_NAME: $ARTIFACT_NAME"
 
       # 過去のスクリーンショットアーティファクトをダウンロード
       - name: Download previous screenshots
         uses: dawidd6/action-download-artifact@v8
         with:
-          name: screenshots
+          name: ${{ env.ARTIFACT_NAME }}
           workflow: store_screenshots.yml
-          branch: ${{ env.DOWNLOAD_BRANCH }}
 
       # ファイルを移動
       - name: Move downloaded files

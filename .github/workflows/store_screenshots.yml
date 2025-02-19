@@ -7,13 +7,11 @@ on:
     branches:
       - develop
       - '*/develop'
-  push:
-    branches:
-      - '*/develop'
+  create:
 
 jobs:
   store-screenshot-test:
-    if: github.event_name == 'create' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    if: (github.event.ref_type == 'branch' && endsWith(github.event.ref, '/develop')) || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -35,6 +33,22 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: wrapper
+
+      # アーティファクト名を決定
+      - name: Determine ARTIFACT_NAME
+        id: determine-Artifact-Name
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            DOWNLOAD_BRANCH="${{ github.event.pull_request.base.ref }}"
+          else
+            DOWNLOAD_BRANCH="${{ github.event.ref }}"
+          fi
+          ARTIFACT_NAME="screenshots_${DOWNLOAD_BRANCH%/develop}"
+
+          # 環境変数に設定
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> "$GITHUB_ENV"
+          # ログ出力
+          echo "Determined DOWNLOAD_BRANCH: $DOWNLOAD_BRANCH, ARTIFACT_NAME: $ARTIFACT_NAME"
 
       - name: Check if companion branch exists
         id: check_companion_branch
@@ -84,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: steps.record_test.outcome == 'success'
         with:
-          name: screenshots
+          name: ${{ env.ARTIFACT_NAME }}
           path: screenshots
           retention-days: 30
           overwrite: true
