@@ -43,7 +43,7 @@ fun HomeScreen(
             Button(
                 onClick = onNavigateToSearch,
                 colors = ButtonColors(
-                    containerColor = Color.Blue,
+                    containerColor = Color.Green,
                     contentColor = Color.White,
                     disabledContainerColor = Color.Gray,
                     disabledContentColor = Color.White
