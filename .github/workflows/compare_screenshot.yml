@@ -57,14 +57,26 @@ jobs:
 
       # ファイルを移動
       - name: Move downloaded files
+        id: move-downloaded-files
         run: |
           # "screenshots"ディレクトリを作成し、カレントディレクトリ(.)直下にあるPNGファイルを移行する
           mkdir -p screenshots
-          find . -maxdepth 1 -name "*.png" -exec mv {} screenshots/ \; || echo "No PNG files to move."
+          find "$GITHUB_WORKSPACE" -maxdepth 1 -name "*.png" -exec mv {} screenshots/ \;
 
-      # スクリーンショット比較テストを実行
+          # PNGファイルが存在するか確認
+          if [[ -z "$(ls -A screenshots)" ]]; then
+            echo "No PNG files found."
+            echo "PREVIOUS_SCREENSHOT_FOUND=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "PNG files found."
+            echo "PREVIOUS_SCREENSHOT_FOUND=true" >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
+
+        # スクリーンショット比較テストを実行
       - name: Compare screenshot test
         id: compare-screenshot-test
+        if: steps.move-downloaded-files.outputs.PREVIOUS_SCREENSHOT_FOUND == 'true'
         run: |
           ./gradlew compareRoborazziDebug --stacktrace
 
