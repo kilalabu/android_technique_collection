@@ -69,9 +69,8 @@ jobs:
         uses: dawidd6/action-download-artifact@v8
         continue-on-error: true # エラーが発生しても続行
         with:
-          name: screenshots
+          name: ${{ env.ARTIFACT_NAME }}
           workflow: store_screenshots.yml
-          branch: ${{ github.base_ref }}
 
       - name: Check if artifact exists
         if: steps.check_companion_branch.outcome == 'success' && env.COMPANION_BRANCH_EXISTS == 'false'
