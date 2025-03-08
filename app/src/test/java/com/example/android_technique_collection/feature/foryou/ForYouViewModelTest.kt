@@ -20,6 +20,7 @@ import java.time.Instant
 import kotlin.test.assertEquals
 
 class ForYouViewModelTest {
+    // テスト中の間 `Dispatchers.Main` を `UnconfinedTestDispatcher` に置き換えるためのルール
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -48,6 +49,8 @@ class ForYouViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun newsResourcesAreLoadedSuccessfully() = runTest {
+        // `runTest` のデフォルト `StandardTestDispatcher` は遅延実行。（明示的に時間を進めないとコルーチンが開始されない）
+        // そのため `UnconfinedTestDispatcher` を指定し、即座に開始させる
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.feedState.collect() }
 
         val followedTopicIds = setOf("0", "1")

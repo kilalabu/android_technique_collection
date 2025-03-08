@@ -11,11 +11,13 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
 /**
- * A JUnit [TestRule] that sets the Main dispatcher to [testDispatcher]
- * for the duration of the test.
+ * テスト環境では `Dispatchers.Main` が使用できないため、
+ * テスト実行中は `Main` ディスパッチャを [testDispatcher] に置き換えるための JUnit [TestRule]
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule  constructor(
+    // UnconfinedTestDispatcher を使用することで、テスト内のコルーチンを即時実行し、
+    // delay などの時間制御をスキップできる
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher(),
 ) : TestWatcher() {
 
