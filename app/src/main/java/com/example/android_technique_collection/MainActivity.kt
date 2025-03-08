@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.android_technique_collection.feature.chart.ChartScreen
+import com.example.android_technique_collection.feature.foryou.ForYouScreen
 import com.example.android_technique_collection.feature.home.HomeScreen
 import com.example.android_technique_collection.feature.searchphoto.SearchPhotoScreen
 import com.example.android_technique_collection.ui.common.theme.Android_technique_collectionTheme
@@ -39,6 +40,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToChart = {
                                     navController.navigate(ScreenRoute.ChartScreen.route)
+                                },
+                                onNavigateToForYou = {
+                                    navController.navigate(ScreenRoute.ForYouScreen.route)
                                 }
                             )
                         }
@@ -47,6 +51,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(ScreenRoute.ChartScreen.route) {
                             ChartScreen()
+                        }
+                        composable(ScreenRoute.ForYouScreen.route) {
+                            ForYouScreen()
                         }
                     }
                 }
