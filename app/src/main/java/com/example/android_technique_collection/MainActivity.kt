@@ -53,7 +53,11 @@ class MainActivity : ComponentActivity() {
                             ChartScreen()
                         }
                         composable(ScreenRoute.ForYouScreen.route) {
-                            ForYouScreen()
+                            ForYouScreen(
+                                onPopBackStack = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
                     }
                 }
