@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun ForYouScreen(
@@ -70,8 +71,10 @@ fun ForYouScreen(
                         contentType = { "newsFeedItem" },
                     ) {
                         Column {
-                            Text(text = it.title)
-                            Text(text = it.content)
+                            Text(text = it.toString())
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 16.dp),
+                            )
                         }
                     }
                 }

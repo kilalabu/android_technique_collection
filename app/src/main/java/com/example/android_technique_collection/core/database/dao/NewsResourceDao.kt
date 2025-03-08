@@ -36,7 +36,7 @@ class NewsResourceDao @Inject constructor() {
         private val allNewsResources = listOf(
             PopulatedNewsResource(
                 entity = NewsResourceEntity(
-                    id = "1",
+                    id = "N1",
                     title = "news1",
                     content = "Hilt",
                     url = "url1",
@@ -46,7 +46,7 @@ class NewsResourceDao @Inject constructor() {
                 ),
                 topics = listOf(
                     TopicEntity(
-                        id = "3",
+                        id = "T1",
                         name = "name1",
                         shortDescription = "short description1",
                         longDescription = "long description1",
@@ -57,7 +57,7 @@ class NewsResourceDao @Inject constructor() {
             ),
             PopulatedNewsResource(
                 entity = NewsResourceEntity(
-                    id = "2",
+                    id = "N2",
                     title = "news2",
                     content = "Compose",
                     url = "url2",
@@ -67,7 +67,7 @@ class NewsResourceDao @Inject constructor() {
                 ),
                 topics = listOf(
                     TopicEntity(
-                        id = "4",
+                        id = "T2",
                         name = "name2",
                         shortDescription = "short description2",
                         longDescription = "long description2",
@@ -75,7 +75,7 @@ class NewsResourceDao @Inject constructor() {
                         imageUrl = "image URL2",
                     ),
                     TopicEntity(
-                        id = "3",
+                        id = "T3",
                         name = "name1",
                         shortDescription = "short description1",
                         longDescription = "long description1",
@@ -86,7 +86,7 @@ class NewsResourceDao @Inject constructor() {
             ),
             PopulatedNewsResource(
                 entity = NewsResourceEntity(
-                    id = "3",
+                    id = "N3",
                     title = "news3",
                     content = "Kotlin",
                     url = "url3",
@@ -96,7 +96,7 @@ class NewsResourceDao @Inject constructor() {
                 ),
                 topics = listOf(
                     TopicEntity(
-                        id = "5",
+                        id = "T4",
                         name = "name3",
                         shortDescription = "short description3",
                         longDescription = "long description3",

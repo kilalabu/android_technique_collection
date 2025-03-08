@@ -14,7 +14,7 @@ class NiaPreferencesDataSource @Inject constructor(
         UserData(
             bookmarkedNewsResources = setOf("N1"),
             viewedNewsResources = setOf("N1"),
-            followedTopics = setOf("T1"),
+            followedTopics = setOf("T1", "T2"),
             themeBrand = ThemeBrand.DEFAULT,
             darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
             useDynamicColor = false,
