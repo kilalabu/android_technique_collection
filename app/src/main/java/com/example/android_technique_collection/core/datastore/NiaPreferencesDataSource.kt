@@ -1,0 +1,24 @@
+package com.example.android_technique_collection.core.datastore
+
+import com.example.android_technique_collection.core.model.DarkThemeConfig
+import com.example.android_technique_collection.core.model.ThemeBrand
+import com.example.android_technique_collection.core.model.UserData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import javax.inject.Inject
+
+class NiaPreferencesDataSource @Inject constructor(
+) {
+    // 本来はDataStoreから取得する
+    val userData: Flow<UserData> = flowOf(
+        UserData(
+            bookmarkedNewsResources = setOf("N1"),
+            viewedNewsResources = setOf("N1"),
+            followedTopics = setOf("T1"),
+            themeBrand = ThemeBrand.DEFAULT,
+            darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
+            useDynamicColor = false,
+            shouldHideOnboarding = true,
+        )
+    )
+}
