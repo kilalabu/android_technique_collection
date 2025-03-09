@@ -30,7 +30,8 @@ fun ForYouScreen(
     ForYouScreen(
         feedState = feedState,
         modifier = modifier,
-        onPopBackStack = onPopBackStack
+        onPopBackStack = onPopBackStack,
+        onNewsResourcesCheckedChanged = viewModel::updateNewsResourceSaved
     )
 }
 
@@ -40,6 +41,7 @@ fun ForYouScreen(
     feedState: NewsFeedUiState,
     modifier: Modifier = Modifier,
     onPopBackStack: () -> Unit,
+    onNewsResourcesCheckedChanged: (String, Boolean) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -74,7 +76,12 @@ fun ForYouScreen(
                             userNewsResource = userNewsResource,
                             isBookmarked = userNewsResource.isSaved,
                             onClick = {},
-                            onToggleBookmark = {},
+                            onToggleBookmark = {
+                                onNewsResourcesCheckedChanged(
+                                    userNewsResource.id,
+                                    !userNewsResource.isSaved
+                                )
+                            },
                             onTopicClick = {},
                             modifier = Modifier
                                 .padding(8.dp)

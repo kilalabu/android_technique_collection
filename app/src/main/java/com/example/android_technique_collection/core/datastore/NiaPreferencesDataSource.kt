@@ -13,6 +13,8 @@ class NiaPreferencesDataSource @Inject constructor(
     val userData: Flow<UserData> = flow {
         emit(sampleUserData)
     }
+
+    fun setNewsResourceBookmarked(newsResourceId: String, bookmarked: Boolean) {}
 }
 
 val sampleUserData = UserData(

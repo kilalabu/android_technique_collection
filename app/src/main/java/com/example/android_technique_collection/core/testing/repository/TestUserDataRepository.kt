@@ -34,4 +34,8 @@ class TestUserDataRepository : UserDataRepository {
     }
 
     override val userData: Flow<UserData> = _userData.filterNotNull()
+
+    override suspend fun setNewsResourceBookmarked(newsResourceId: String, bookmarked: Boolean) {
+        TODO("Not yet implemented")
+    }
 }

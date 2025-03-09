@@ -10,4 +10,8 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
 ) : UserDataRepository {
 
     override val userData: Flow<UserData> = niaPreferencesDataSource.userData
+
+    override suspend fun setNewsResourceBookmarked(newsResourceId: String, bookmarked: Boolean) {
+        niaPreferencesDataSource.setNewsResourceBookmarked(newsResourceId, bookmarked)
+    }
 }

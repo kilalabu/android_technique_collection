@@ -9,4 +9,7 @@ interface UserDataRepository {
      * Stream of [UserData]
      */
     val userData: Flow<UserData>
+
+    suspend fun setNewsResourceBookmarked(newsResourceId: String, bookmarked: Boolean)
+
 }
