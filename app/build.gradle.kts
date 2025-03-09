@@ -1,4 +1,5 @@
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     kotlin("kapt")
@@ -7,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.hiltAndroid)
     alias(libs.plugins.roborazzi)
+    kotlin("plugin.power-assert") version libs.versions.kotlin
 }
 
 android {
@@ -127,4 +129,10 @@ roborazzi {
         // The fully qualified class name of the custom test class that implements [com.github.takahirom.roborazzi.ComposePreviewTester].
         testerQualifiedClassName = "com.example.android_technique_collection.MyComposePreviewTester"
     }
+}
+
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
+powerAssert {
+    functions = listOf("kotlin.assert", "kotlin.require", "kotlin.test.assertTrue", "kotlin.test.assertEquals", "kotlin.test.assertNull")
+    includedSourceSets = listOf("debugUnitTest")
 }
