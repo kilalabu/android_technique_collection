@@ -11,16 +11,16 @@ class NiaPreferencesDataSource @Inject constructor(
 ) {
     // 本来はDataStoreから取得する
     val userData: Flow<UserData> = flow {
-        emit(
-            UserData(
-                bookmarkedNewsResources = setOf("N1"),
-                viewedNewsResources = setOf("N1"),
-                followedTopics = setOf("T1", "T2"),
-                themeBrand = ThemeBrand.DEFAULT,
-                darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
-                useDynamicColor = false,
-                shouldHideOnboarding = true,
-            )
-        )
+        emit(sampleUserData)
     }
 }
+
+val sampleUserData = UserData(
+    bookmarkedNewsResources = setOf("N1"),
+    viewedNewsResources = setOf("N1"),
+    followedTopics = setOf("T1", "T2"),
+    themeBrand = ThemeBrand.DEFAULT,
+    darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
+    useDynamicColor = false,
+    shouldHideOnboarding = true,
+)
