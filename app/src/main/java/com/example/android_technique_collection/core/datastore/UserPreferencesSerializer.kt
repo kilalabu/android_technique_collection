@@ -8,6 +8,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import javax.inject.Inject
 
+// データ型の読み取り / 書き込みの方法を DataStore に指示するためのSerializer
 // 公式の通りに実装 https://developer.android.com/topic/libraries/architecture/datastore
 class UserPreferencesSerializer @Inject constructor() : Serializer<UserPreferences>{
     override val defaultValue: UserPreferences = UserPreferences.getDefaultInstance()
