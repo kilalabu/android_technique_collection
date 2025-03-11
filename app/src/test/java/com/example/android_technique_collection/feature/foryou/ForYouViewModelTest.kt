@@ -35,7 +35,7 @@ class ForYouViewModelTest {
 
     @Before
     fun setup() {
-        viewModel = ForYouViewModel(userNewsResourceRepository)
+        viewModel = ForYouViewModel(userDataRepository, userNewsResourceRepository)
     }
 
     @Test
