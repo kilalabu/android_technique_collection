@@ -9,6 +9,7 @@ import com.example.android_technique_collection.copy
 import com.example.android_technique_collection.core.model.DarkThemeConfig
 import com.example.android_technique_collection.core.model.ThemeBrand
 import com.example.android_technique_collection.core.model.UserData
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
@@ -16,7 +17,10 @@ import javax.inject.Inject
 class NiaPreferencesDataSource @Inject constructor(
     private val userPreferences: DataStore<UserPreferences>,
 ) {
-    val userData = userPreferences.data
+    // DataStore の data は Flow であり、updateData でデータが更新されるたびに
+    // 自動的に最新のデータが emit される仕組みになっている。
+    // そのため、collect することで常に最新の UserData を取得できる。
+    val userData: Flow<UserData> = userPreferences.data
         .map {
             UserData(
                 bookmarkedNewsResources = it.bookmarkedNewsResourceIdsMap.keys,
@@ -65,6 +69,7 @@ class NiaPreferencesDataSource @Inject constructor(
         }
     }
 
+    // テストデータを登録するためのメソッド
     suspend fun insertSampleUserData() {
         try {
             userPreferences.updateData {
