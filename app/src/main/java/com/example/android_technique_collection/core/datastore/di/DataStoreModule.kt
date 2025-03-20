@@ -32,8 +32,11 @@ object DataStoreModule {
     ): DataStore<UserPreferences> =
         DataStoreFactory.create(
             serializer = userPreferencesSerializer,
-            // アプリのライフサイクルに基づいて DataStore を管理する
-            // I/O処理を適切なスレッド（Dispatchers.IO）で実行する
+            /**
+             * - `scope`は`@ApplicationScope`で提供されており、`SupervisorJob() + Dispatchers.Default`を持つが、
+             * - `scope.coroutineContext + ioDispatcher` によって、`Dispatchers.Default`は`Dispatchers.IO`に置き換えられる。
+             * - `SupervisorJob()` はそのまま維持されるため、子コルーチンが失敗しても他の処理に影響を与えない。
+             */
             scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
         ) {
             context.dataStoreFile("user_preferences.pb")

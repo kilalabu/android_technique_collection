@@ -25,6 +25,9 @@ object DispatchersModule {
 @Retention(RUNTIME)
 annotation class Dispatcher(val niaDispatcher: NiaDispatchers)
 
+/**
+ * `CoroutineDispatcher` の識別子として使う Enum。
+ */
 enum class NiaDispatchers {
     Default,
     IO,
