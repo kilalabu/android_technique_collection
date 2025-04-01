@@ -13,6 +13,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.android_technique_collection.data.repository.EmailRepositoryImpl
 import com.example.android_technique_collection.feature.chart.ChartScreen
 import com.example.android_technique_collection.feature.home.HomeScreen
+import com.example.android_technique_collection.feature.inbox.DetailPresenter
+import com.example.android_technique_collection.feature.inbox.DetailScreen
+import com.example.android_technique_collection.feature.inbox.EmailDetail
 import com.example.android_technique_collection.feature.inbox.Inbox
 import com.example.android_technique_collection.feature.inbox.InboxPresenter
 import com.example.android_technique_collection.feature.inbox.InboxScreen
@@ -34,7 +37,9 @@ class MainActivity : ComponentActivity() {
         val circuit: Circuit =
             Circuit.Builder()
                 .addPresenterFactory(InboxPresenter.Factory(emailRepository))
+                .addPresenterFactory(DetailPresenter.Factory(emailRepository))
                 .addUi<InboxScreen, InboxScreen.State> { state, modifier -> Inbox(state, modifier) }
+                .addUi<DetailScreen, DetailScreen.State> { state, modifier -> EmailDetail(state, modifier) }
                 .build()
         setContent {
             Android_technique_collectionTheme {
