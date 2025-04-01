@@ -1,4 +1,4 @@
-package com.example.android_technique_collection.feature.inbox
+package com.example.android_technique_collection.feature.inbox.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
