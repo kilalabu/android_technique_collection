@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.android_technique_collection.domain.model.inbox.Email
 
@@ -70,4 +71,20 @@ fun EmailDetailContent(email: Email, modifier: Modifier = Modifier) {
         Divider(modifier = Modifier.padding(vertical = 16.dp))
         Text(text = email.body, style = MaterialTheme.typography.bodyMedium)
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EmailDetailContentPreview() {
+    EmailDetailContent(
+        email = Email(
+            id = "1",
+            subject = "Meeting re-sched!",
+            body =
+                "Hey, I'm going to be out of the office tomorrow. Can we reschedule our meeting for Thursday or next week?",
+            sender = "Ali Connors",
+            timestamp = "3:00 PM",
+            recipients = listOf("all@example.com"),
+        )
+    )
 }

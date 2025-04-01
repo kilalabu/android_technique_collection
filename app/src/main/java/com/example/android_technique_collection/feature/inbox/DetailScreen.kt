@@ -16,6 +16,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.slack.circuit.runtime.Navigator
 import com.example.android_technique_collection.data.repository.EmailRepositoryImpl
@@ -87,4 +88,23 @@ fun EmailDetail(state: DetailScreen.State, modifier: Modifier = Modifier) {
             EmailDetailContent(state.email)
         }
     }
+}
+
+@Preview
+@Composable
+private fun EmailDetailPreview() {
+    EmailDetail(
+        state = DetailScreen.State(
+            email = Email(
+                id = "1",
+                subject = "Meeting re-sched!",
+                body =
+                    "Hey, I'm going to be out of the office tomorrow. Can we reschedule our meeting for Thursday or next week?",
+                sender = "Ali Connors",
+                timestamp = "3:00 PM",
+                recipients = listOf("all@example.com"),
+            ),
+            eventSink = {}
+        )
+    )
 }

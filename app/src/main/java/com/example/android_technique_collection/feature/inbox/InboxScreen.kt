@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.android_technique_collection.data.repository.EmailRepositoryImpl
 import com.example.android_technique_collection.domain.model.inbox.Email
 import com.slack.circuit.runtime.CircuitContext
@@ -78,4 +79,44 @@ fun Inbox(state: InboxScreen.State, modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun InboxPreview() {
+    Inbox(
+        state = InboxScreen.State(
+            emails = listOf(
+                Email(
+                    id = "1",
+                    subject = "Meeting re-sched!",
+                    body =
+                        "Hey, I'm going to be out of the office tomorrow. Can we reschedule our meeting for Thursday or next week?",
+                    sender = "Ali Connors",
+                    timestamp = "3:00 PM",
+                    recipients = listOf("all@example.com"),
+                ),
+                Email(
+                    id = "2",
+                    subject = "Meeting re-sched!",
+                    body =
+                        "Hey, I'm going to be out of the office tomorrow. Can we reschedule our meeting for Thursday or next week?",
+                    sender = "Ali Connors",
+                    timestamp = "3:00 PM",
+                    recipients = listOf("all@example.com"),
+                ),
+                Email(
+                    id = "3",
+                    subject = "Meeting re-sched!",
+                    body =
+                        "Hey, I'm going to be out of the office tomorrow. Can we reschedule our meeting for Thursday or next week?",
+                    sender = "Ali Connors",
+                    timestamp = "3:00 PM",
+                    recipients = listOf("all@example.com"),
+                ),
+            ),
+            eventSink = {}
+        )
+    )
+
 }
