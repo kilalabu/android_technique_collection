@@ -13,8 +13,8 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import com.example.android_technique_collection.data.repository.EmailRepositoryImpl
 import com.example.android_technique_collection.domain.model.inbox.Email
-import com.example.android_technique_collection.domain.repository.EmailRepository
 import com.slack.circuit.runtime.CircuitContext
+import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -24,8 +24,13 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data object InboxScreen : Screen {
     data class State(
-        val emails: List<Email>
+        val emails: List<Email>,
+        val eventSink: (Event) -> Unit
     ) : CircuitUiState
+
+    sealed class Event : CircuitUiEvent {
+        data class EmailClicked(val emailId: String) : Event()
+    }
 }
 
 class InboxPresenter(
@@ -37,7 +42,11 @@ class InboxPresenter(
         val emails by produceState<List<Email>>(initialValue = emptyList()) {
             value = emailRepository.getEmails()
         }
-        return InboxScreen.State(emails)
+        return InboxScreen.State(emails) { event ->
+            when (event) {
+                is InboxScreen.Event.EmailClicked -> navigator.goTo(DetailScreen(event.emailId))
+            }
+        }
     }
 
     class Factory(private val emailRepository: EmailRepositoryImpl) : Presenter.Factory {
@@ -62,7 +71,10 @@ fun Inbox(state: InboxScreen.State, modifier: Modifier = Modifier) {
         topBar = { TopAppBar(title = { Text("Inbox") }) }) { innerPadding ->
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
             items(state.emails) { email ->
-                EmailItem(email)
+                EmailItem(
+                    email = email,
+                    onClick = { state.eventSink(InboxScreen.Event.EmailClicked(email.id)) }
+                )
             }
         }
     }
