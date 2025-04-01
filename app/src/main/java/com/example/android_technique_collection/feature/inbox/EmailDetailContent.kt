@@ -1,6 +1,5 @@
 package com.example.android_technique_collection.feature.inbox
 
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,31 +22,18 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.android_technique_collection.domain.model.inbox.Email
-import com.slack.circuit.sharedelements.SharedElementTransitionScope
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun EmailDetailContent(email: Email, modifier: Modifier = Modifier) = SharedElementTransitionScope {
+fun EmailDetailContent(email: Email, modifier: Modifier = Modifier) {
     Column(modifier.padding(16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Image(
                 Icons.Default.Person,
-                modifier =
-                    Modifier.sharedElement(
-                        state =
-                            rememberSharedContentState(
-                                EmailSharedTransitionKey(
-                                    id = email.id,
-                                    type = EmailSharedTransitionKey.ElementType.SenderImage,
-                                )
-                            ),
-                        animatedVisibilityScope =
-                            requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-                    )
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color.Magenta)
-                        .padding(4.dp),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.Magenta)
+                    .padding(4.dp),
                 colorFilter = ColorFilter.tint(Color.White),
                 contentDescription = null,
             )
@@ -55,19 +41,7 @@ fun EmailDetailContent(email: Email, modifier: Modifier = Modifier) = SharedElem
                 Row {
                     Text(
                         text = email.sender,
-                        modifier =
-                            Modifier.sharedBounds(
-                                sharedContentState =
-                                    rememberSharedContentState(
-                                        EmailSharedTransitionKey(
-                                            id = email.id,
-                                            type = EmailSharedTransitionKey.ElementType.SenderName,
-                                        )
-                                    ),
-                                animatedVisibilityScope =
-                                    requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-                            )
-                                .weight(1f),
+                        modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
@@ -77,24 +51,13 @@ fun EmailDetailContent(email: Email, modifier: Modifier = Modifier) = SharedElem
                         modifier = Modifier.alpha(0.5f),
                     )
                 }
-                Text(
-                    text = email.subject,
-                    modifier =
-                        Modifier.sharedBounds(
-                            sharedContentState =
-                                rememberSharedContentState(
-                                    EmailSharedTransitionKey(
-                                        id = email.id,
-                                        type = EmailSharedTransitionKey.ElementType.Subject,
-                                    )
-                                ),
-                            animatedVisibilityScope =
-                                requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-                        ),
-                    style = MaterialTheme.typography.labelMedium,
-                )
+                Text(text = email.subject, style = MaterialTheme.typography.labelMedium)
                 Row {
-                    Text("To: ", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        "To: ",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                     Text(
                         text = email.recipients.joinToString(","),
                         style = MaterialTheme.typography.labelMedium,
@@ -104,21 +67,7 @@ fun EmailDetailContent(email: Email, modifier: Modifier = Modifier) = SharedElem
             }
         }
         @Suppress("DEPRECATION") // Deprecated in Android but not yet available in CM
-        (Divider(modifier = Modifier.padding(vertical = 16.dp)))
-        Text(
-            text = email.body,
-            Modifier.sharedBounds(
-                sharedContentState =
-                    rememberSharedContentState(
-                        EmailSharedTransitionKey(
-                            id = email.id,
-                            type = EmailSharedTransitionKey.ElementType.Body,
-                        )
-                    ),
-                animatedVisibilityScope =
-                    requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        Divider(modifier = Modifier.padding(vertical = 16.dp))
+        Text(text = email.body, style = MaterialTheme.typography.bodyMedium)
     }
 }
