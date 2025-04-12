@@ -29,26 +29,40 @@ fun SearchPhotoScreen(
     val uiState by viewModel.uiState.collectAsState()
     SearchPhotoScreen(
         uiState = uiState,
-        onSearchTextChanged = viewModel::updateQuery,
-        onInputDone = viewModel::searchPhotos,
-        onReachedToLastItem = viewModel::paging
+        callback = { callback ->
+            when (callback) {
+                is SearchPhotoScreenCallback.OnSearchTextChanged -> {
+                    viewModel.updateQuery(callback.query)
+                }
+
+                is SearchPhotoScreenCallback.OnInputDone -> {
+                    viewModel.searchPhotos()
+                }
+
+                is SearchPhotoScreenCallback.OnReachedToLastItem -> {
+                    viewModel.paging()
+                }
+            }
+        },
     )
 }
 
 @Composable
 private fun SearchPhotoScreen(
     uiState: SearchPhotoViewState,
-    onSearchTextChanged: (String) -> Unit,
-    onInputDone: () -> Unit,
-    onReachedToLastItem: () -> Unit,
+    callback: (SearchPhotoScreenCallback) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         topBar = {
             SearchBar(
                 searchQuery = uiState.query,
-                onSearchTextChanged = onSearchTextChanged,
-                onDone = onInputDone,
+                onSearchTextChanged = {
+                    callback(SearchPhotoScreenCallback.OnSearchTextChanged(it))
+                },
+                onDone = {
+                    callback(SearchPhotoScreenCallback.OnInputDone)
+                },
                 placeHolder = "高解像度写真の検索",
             )
         },
@@ -58,7 +72,9 @@ private fun SearchPhotoScreen(
             is SearchPhotoViewState.Shown -> {
                 SearchPhotoResultSection(
                     uiState = uiState,
-                    onReachedToLastItem = onReachedToLastItem,
+                    onReachedToLastItem = {
+                        callback(SearchPhotoScreenCallback.OnReachedToLastItem)
+                    },
                     modifier = Modifier.padding(padding)
                 )
             }
@@ -126,7 +142,7 @@ fun SearchPhotoScreenPreview() {
                 pagingState = PagingState.READY,
                 currentPage = 1,
             ),
-            {}, {}, {}
+            {},
         )
     }
 }
