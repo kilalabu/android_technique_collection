@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.hiltAndroid)
     alias(libs.plugins.roborazzi)
     kotlin("plugin.power-assert") version libs.versions.kotlin
+    id("kotlin-parcelize")
 }
 
 android {
@@ -84,6 +85,7 @@ dependencies {
     implementation(libs.converter.moshi)
     implementation(libs.moshi.kotlin)
     implementation(libs.coil)
+    implementation(libs.circuit)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
