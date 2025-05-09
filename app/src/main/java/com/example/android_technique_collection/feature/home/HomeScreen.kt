@@ -24,7 +24,8 @@ import com.example.android_technique_collection.ui.common.preview.MultiPreviews
 @Composable
 fun HomeScreen(
     onNavigateToSearch: () -> Unit,
-    onNavigateToChart: () -> Unit
+    onNavigateToChart: () -> Unit,
+    onNavigateToForYou: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -62,6 +63,14 @@ fun HomeScreen(
             ) {
                 Text(text = stringResource(R.string.to_graph))
             }
+            Button(
+                onClick = onNavigateToForYou,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                Text(text = stringResource(R.string.to_for_you))
+            }
         }
     }
 }
@@ -69,5 +78,5 @@ fun HomeScreen(
 @MultiPreviews
 @Composable
 private fun HomeScreenPreview() {
-    HomeScreen({},{})
+    HomeScreen({}, {}, {})
 }

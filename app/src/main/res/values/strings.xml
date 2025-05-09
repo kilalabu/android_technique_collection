@@ -5,4 +5,5 @@
     <string name="home_title">Home List</string>
     <string name="to_search">Search Screen</string>
     <string name="to_graph">Graph Screen</string>
+    <string name="to_for_you">For You Screen</string>
 </resources>

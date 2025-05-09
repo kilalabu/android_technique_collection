@@ -5,4 +5,5 @@
     <string name="home_title">導線一覧</string>
     <string name="to_search">検索画面</string>
     <string name="to_graph">グラフ画面</string>
+    <string name="to_for_you">あなたのための画面</string>
 </resources>

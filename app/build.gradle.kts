@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.hiltAndroid)
     alias(libs.plugins.roborazzi)
+    alias(libs.plugins.protobuf)
     kotlin("plugin.power-assert") version libs.versions.kotlin
 }
 
@@ -65,6 +66,26 @@ android {
     }
 }
 
+// Setup protobuf configuration, generating lite Java and Kotlin classes
+protobuf {
+    protoc {
+        // Download from repositories
+        artifact = libs.protobuf.protoc.get().toString()
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                register("java") {
+                    option("lite")
+                }
+                register("kotlin") {
+                    option("lite")
+                }
+            }
+        }
+    }
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -85,6 +106,9 @@ dependencies {
     implementation(libs.moshi.kotlin)
     implementation(libs.coil)
 
+    implementation(libs.datastore)
+    api(libs.protobuf.kotlin.lite)
+
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.roborazzi)
@@ -94,6 +118,9 @@ dependencies {
     testImplementation(libs.compose.preview.scanner)
     testImplementation(libs.androidx.espresso.core)
     testImplementation(libs.androidx.ui.test.junit4)
+
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
