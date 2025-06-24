@@ -83,7 +83,22 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
     implementation(libs.moshi.kotlin)
-    implementation(libs.coil)
+    // implementation(libs.coil) // Replaced by coil-compose below
+    implementation("io.coil-kt:coil-compose:2.6.0") // Specific for Jetpack Compose
+
+    // ViewModel & Lifecycle
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    // implementation(libs.androidx.lifecycle.runtime.ktx) // Already present and covers this
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+
+    // OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Collections KTX (for LruCache)
+    implementation("androidx.collection:collection-ktx:1.4.0")
+
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
